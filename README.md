@@ -1,5 +1,8 @@
 # Ninjabrainbot Calculator Overlay
 
+> [!NOTE]
+>  I haven't tested it on Windows, but it works great for me on Linux.
+
 A Java program that generates an image displaying the certainty percentage of hitting the stronghold, the coordinates of the Nether portal, and the distance to the stronghold portal.
 
 ## How to use
@@ -18,5 +21,4 @@ Congratulations! You now have the overlay. Keep the program running in the backg
 
 If you need help or have any questions, feel free to contact me on Discord: **qMaxXen**.
 
-> [!NOTE]
->  I haven't tested it on Windows, but it works great for me on Linux.
+
