@@ -102,7 +102,8 @@ public class Main {
             if (predictions != null && predictions.length() > 0) {
                 double certainty = predictions.getJSONObject(0).getDouble("certainty");
                 double overworldDistance = predictions.getJSONObject(0).getDouble("overworldDistance");
-                double netherDistance = overworldDistance / 8;
+                // Calculate nether distance from overworld distance
+                int netherDistance = (int) Math.ceil(overworldDistance / 8.0);
 
                 JSONObject firstPrediction = predictions.getJSONObject(0);
                 int chunkX = firstPrediction.getInt("chunkX");
@@ -112,19 +113,27 @@ public class Main {
                 int overworldX = (chunkX * 16) + 4;
                 int overworldZ = (chunkZ * 16) + 4;
 
-                // Correct rounding: Always round up
+                // Correct rounding: Always round up for nether coordinates
                 int netherX = (overworldX >= 0) ? (int) Math.ceil(overworldX / 8.0) : (int) Math.floor(overworldX / 8.0);
                 int netherZ = (overworldZ >= 0) ? (int) Math.ceil(overworldZ / 8.0) : (int) Math.floor(overworldZ / 8.0);
+
+                // Use the correct distance based on player's location (Overworld or Nether)
+                int distanceToUse = 0;
+                if (isInOverworld) {
+                    distanceToUse = (int) Math.round(overworldDistance);  // In Overworld, use overworldDistance
+                } else if (isInNether) {
+                    distanceToUse = (int) Math.round(netherDistance);  // In Nether, use netherDistance (overworldDistance / 8)
+                }
 
                 // Check if the player is in the Overworld or Nether and choose coordinates accordingly
                 if (isInOverworld) {
                     System.out.println("Overworld World X: " + overworldX);
                     System.out.println("Overworld World Z: " + overworldZ);
-                    createImage(certainty, overworldX, overworldZ, (int) Math.round(overworldDistance), (int) Math.round(netherDistance), true);
+                    createImage(certainty, overworldX, overworldZ, distanceToUse, netherDistance, true);
                 } else if (isInNether) {
                     System.out.println("Nether World X: " + netherX);
                     System.out.println("Nether World Z: " + netherZ);
-                    createImage(certainty, netherX, netherZ, (int) Math.round(overworldDistance), (int) Math.round(netherDistance), false);
+                    createImage(certainty, netherX, netherZ, distanceToUse, netherDistance, false);
                 }
             } else {
                 // If predictions are empty, create an empty image (without text)
