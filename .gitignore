@@ -1,0 +1,12 @@
+target/
+
+.vscode/
+
+image.png
+
+dependency-reduced-pom.xml
+
+*.class
+
+.DS_Store
+Thumbs.db
