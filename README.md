@@ -1,4 +1,4 @@
-# Ninjabrainbot Calculator Overlay
+# Ninjabrainbot OBS Overlay
 
 A Java program that generates an image displaying the certainty percentage of hitting the stronghold, the coordinates of the Nether portal, and the distance to the stronghold portal.
 
