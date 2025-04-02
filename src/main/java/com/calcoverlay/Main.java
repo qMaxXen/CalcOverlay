@@ -3,6 +3,7 @@ package com.calcoverlay;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
@@ -17,12 +18,52 @@ import java.util.concurrent.TimeUnit;
 
 public class Main {
 
+    private static JFrame frame;
+    private static JTextArea textArea;
+    private static JLabel statusLabel;
+
     public static void main(String[] args) {
         System.out.println("Hello, CalcOverlay!");
 
         // Create a ScheduledExecutorService to run the task every 2 seconds
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         scheduler.scheduleAtFixedRate(Main::fetchAndGenerateImage, 0, 2, TimeUnit.SECONDS);
+
+        // Set up the GUI
+        SwingUtilities.invokeLater(Main::createAndShowGUI);
+    }
+
+    private static void createAndShowGUI() {
+        // Create main frame
+        frame = new JFrame("CalcOverlay v1.0.0");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(800, 600);  // Set the window size to 800x600
+
+        // Set up the layout
+        frame.setLayout(new BorderLayout());
+
+        // Text area to display logs and information
+        textArea = new JTextArea();
+        textArea.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        frame.add(scrollPane, BorderLayout.CENTER);
+
+        // Create a status label at the top for version and ping response
+        statusLabel = new JLabel("Ninjabrainbot Version: N/A | Ping Response: N/A", JLabel.CENTER);
+        frame.add(statusLabel, BorderLayout.NORTH);
+
+        // Add a "Close" button to stop the program
+        JButton closeButton = new JButton("Close");
+        closeButton.addActionListener(e -> {
+            System.out.println("Closing application...");
+            createEmptyImageBeforeExit();  // Generate an empty image before exiting
+            frame.dispose();  // Close the frame
+            System.exit(0); // Exit the program
+        });
+        frame.add(closeButton, BorderLayout.SOUTH);
+
+        // Show the GUI
+        frame.setVisible(true);
     }
 
     private static void fetchAndGenerateImage() {
@@ -38,6 +79,9 @@ public class Main {
             String pingUrl = "http://localhost:52533/api/v1/ping";
             String pingResponse = sendHttpRequest(pingUrl);
             System.out.println("Ping Response: " + pingResponse);
+
+            // Update the status label in the GUI
+            updateStatusLabel(version, pingResponse);
 
             // URL of the API for predictions
             String apiUrl = "http://localhost:52533/api/v1/stronghold";
@@ -110,6 +154,13 @@ public class Main {
         return response.toString();
     }
 
+    // Method to update the status label with the server and prediction info
+    private static void updateStatusLabel(String version, String pingResponse) {
+        SwingUtilities.invokeLater(() -> {
+            statusLabel.setText("Ninjabrainbot Version: " + version + " | Ping Response: " + pingResponse);
+        });
+    }
+
     // Method to generate and save the image with text
     private static void createImage(double certainty, int x, int z, int distance, int netherDistance, boolean isOverworld) {
         try {
@@ -126,31 +177,20 @@ public class Main {
             g2d.setFont(font);
             g2d.setColor(Color.WHITE);
 
-            // String certaintyText = "Certainty: " + String.format("%.1f%%", certainty * 100);
             String certaintyText = String.format("%.1f%%", certainty * 100);
-            // String overworldCoords = String.format("Overworld World X: (%d, %d)", x, z);
-            String overworldCoords = String.format("(%d, %d)", x, z);
-            // String overworldCoords = String.format("Overworld: (%d, %d)", x, z);
-            // String overworldDistanceText = "Overworld Distance: " + distance + " meters";
-            String overworldDistanceText = "Dist: " + distance;
-
-            // Update the coordinates to correctly use the netherX and netherZ
-            // String netherCoords = String.format("Nether World X: (%d, %d)", x, z);
-            // String netherCoords = String.format("Nether: (%d, %d)", x, z);
-            String netherCoords = String.format("(%d, %d)", x, z);
-            // String netherDistanceText = "Nether Distance: " + netherDistance + " meters";
-            String netherDistanceText = "Dist: " + netherDistance;
+            String coords = String.format("(%d, %d)", x, z);
+            String distanceText = "Dist: " + distance;
 
             FontMetrics metrics = g2d.getFontMetrics(font);
             int xOffset = width - 10;  
 
             g2d.drawString(certaintyText, xOffset - metrics.stringWidth(certaintyText), 30);
             if (isOverworld) {
-                g2d.drawString(overworldCoords, xOffset - metrics.stringWidth(overworldCoords), 60);
-                g2d.drawString(overworldDistanceText, xOffset - metrics.stringWidth(overworldDistanceText), 90);
+                g2d.drawString(coords, xOffset - metrics.stringWidth(coords), 60);
+                g2d.drawString(distanceText, xOffset - metrics.stringWidth(distanceText), 90);
             } else {
-                g2d.drawString(netherCoords, xOffset - metrics.stringWidth(netherCoords), 60);
-                g2d.drawString(netherDistanceText, xOffset - metrics.stringWidth(netherDistanceText), 90);
+                g2d.drawString(coords, xOffset - metrics.stringWidth(coords), 60);
+                g2d.drawString(distanceText, xOffset - metrics.stringWidth(distanceText), 90);
             }
 
             File file = new File("image.png");
@@ -181,5 +221,10 @@ public class Main {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    // Method to create an empty image before exiting
+    private static void createEmptyImageBeforeExit() {
+        createImageWithoutText();  // Generate an empty image before closing
     }
 }
