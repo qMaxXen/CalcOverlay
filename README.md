@@ -9,7 +9,7 @@ A Java program that generates an image displaying the certainty percentage of hi
 3. Move the .jar file to a convenient location and run it. An image will be generated in the same folder where the **CalcOverlay-1.0.jar** is located.
 4. Add the generated image as an **image source** in obs studio.
 
-### Screenshot
+## Screenshot
 <img src="https://github.com/user-attachments/assets/11981d6b-8961-45aa-ac6f-5066e0d6ec53" width="600" />
 
 
