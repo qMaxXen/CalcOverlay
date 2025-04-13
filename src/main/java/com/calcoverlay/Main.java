@@ -25,118 +25,89 @@ public class Main {
     public static void main(String[] args) {
         System.out.println("Hello, CalcOverlay!");
 
-        // Create a ScheduledExecutorService to run the task every 2 seconds
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         scheduler.scheduleAtFixedRate(Main::fetchAndGenerateImage, 0, 2, TimeUnit.SECONDS);
 
-        // Set up the GUI
         SwingUtilities.invokeLater(Main::createAndShowGUI);
     }
 
     private static void createAndShowGUI() {
-        // Create main frame
         frame = new JFrame("CalcOverlay v1.0.0");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(800, 600);  // Set the window size to 800x600
-
-        // Set up the layout
+        frame.setSize(800, 600);
         frame.setLayout(new BorderLayout());
 
-        // Text area to display logs and information
         textArea = new JTextArea();
         textArea.setEditable(false);
         JScrollPane scrollPane = new JScrollPane(textArea);
         frame.add(scrollPane, BorderLayout.CENTER);
 
-        // Create a status label at the top for version and ping response
         statusLabel = new JLabel("Ninjabrainbot Version: N/A | Ping Response: N/A", JLabel.CENTER);
         frame.add(statusLabel, BorderLayout.NORTH);
 
-        // Add a "Close" button to stop the program
         JButton closeButton = new JButton("Close");
         closeButton.addActionListener(e -> {
             System.out.println("Closing application...");
-            createEmptyImageBeforeExit();  // Generate an empty image before exiting
-            frame.dispose();  // Close the frame
-            System.exit(0); // Exit the program
+            createEmptyImageBeforeExit();
+            frame.dispose();
+            System.exit(0);
         });
         frame.add(closeButton, BorderLayout.SOUTH);
 
-        // Show the GUI
         frame.setVisible(true);
     }
 
     private static void fetchAndGenerateImage() {
         try {
-            // Fetch and print the version
             String versionUrl = "http://localhost:52533/api/v1/version";
             String versionResponse = sendHttpRequest(versionUrl);
             JSONObject versionJson = new JSONObject(versionResponse);
             String version = versionJson.getString("version");
-            System.out.println("Version: " + version);
 
-            // Fetch and print the ping response
             String pingUrl = "http://localhost:52533/api/v1/ping";
             String pingResponse = sendHttpRequest(pingUrl);
-            System.out.println("Ping Response: " + pingResponse);
 
-            // Update the status label in the GUI
             updateStatusLabel(version, pingResponse);
 
-            // URL of the API for predictions
             String apiUrl = "http://localhost:52533/api/v1/stronghold";
             String apiResponse = sendHttpRequest(apiUrl);
 
-            // Convert response to JSON
             JSONObject jsonResponse = new JSONObject(apiResponse);
 
-            // Extract player position and check if in Overworld or Nether
             JSONObject playerPosition = jsonResponse.optJSONObject("playerPosition");
             boolean isInOverworld = playerPosition != null && playerPosition.optBoolean("isInOverworld", false);
             boolean isInNether = playerPosition != null && playerPosition.optBoolean("isInNether", false);
 
-            // Extract "predictions" array
             JSONArray predictions = jsonResponse.optJSONArray("predictions");
 
-            // Get coordinates and certainty for image generation
             if (predictions != null && predictions.length() > 0) {
                 double certainty = predictions.getJSONObject(0).getDouble("certainty");
                 double overworldDistance = predictions.getJSONObject(0).getDouble("overworldDistance");
-                // Calculate nether distance from overworld distance
                 int netherDistance = (int) Math.ceil(overworldDistance / 8.0);
 
                 JSONObject firstPrediction = predictions.getJSONObject(0);
                 int chunkX = firstPrediction.getInt("chunkX");
                 int chunkZ = firstPrediction.getInt("chunkZ");
 
-                // Calculate Overworld coordinates
                 int overworldX = (chunkX * 16) + 4;
                 int overworldZ = (chunkZ * 16) + 4;
 
-                // Correct rounding: Always round up for nether coordinates
                 int netherX = (overworldX >= 0) ? (int) Math.ceil(overworldX / 8.0) : (int) Math.floor(overworldX / 8.0);
                 int netherZ = (overworldZ >= 0) ? (int) Math.ceil(overworldZ / 8.0) : (int) Math.floor(overworldZ / 8.0);
 
-                // Use the correct distance based on player's location (Overworld or Nether)
                 int distanceToUse = 0;
                 if (isInOverworld) {
-                    distanceToUse = (int) Math.round(overworldDistance);  // In Overworld, use overworldDistance
+                    distanceToUse = (int) Math.round(overworldDistance);
                 } else if (isInNether) {
-                    distanceToUse = (int) Math.round(netherDistance);  // In Nether, use netherDistance (overworldDistance / 8)
+                    distanceToUse = (int) Math.round(netherDistance);
                 }
 
-                // Check if the player is in the Overworld or Nether and choose coordinates accordingly
                 if (isInOverworld) {
-                    System.out.println("Overworld World X: " + overworldX);
-                    System.out.println("Overworld World Z: " + overworldZ);
                     createImage(certainty, overworldX, overworldZ, distanceToUse, netherDistance, true);
                 } else if (isInNether) {
-                    System.out.println("Nether World X: " + netherX);
-                    System.out.println("Nether World Z: " + netherZ);
                     createImage(certainty, netherX, netherZ, distanceToUse, netherDistance, false);
                 }
             } else {
-                // If predictions are empty, create an empty image (without text)
                 createImageWithoutText();
             }
 
@@ -145,13 +116,10 @@ public class Main {
         }
     }
 
-    // Method to send HTTP GET request and return response as a string
     private static String sendHttpRequest(String urlString) throws Exception {
-        // Create a connection
         HttpURLConnection conn = (HttpURLConnection) new URL(urlString).openConnection();
         conn.setRequestMethod("GET");
 
-        // Read response
         BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
         StringBuilder response = new StringBuilder();
         String line;
@@ -163,14 +131,27 @@ public class Main {
         return response.toString();
     }
 
-    // Method to update the status label with the server and prediction info
     private static void updateStatusLabel(String version, String pingResponse) {
         SwingUtilities.invokeLater(() -> {
             statusLabel.setText("Ninjabrainbot Version: " + version + " | Ping Response: " + pingResponse);
         });
     }
 
-    // Method to generate and save the image with text
+    private static Color interpolate(Color c1, Color c2, double t) {
+        int r = (int) (c1.getRed() + t * (c2.getRed() - c1.getRed()));
+        int g = (int) (c1.getGreen() + t * (c2.getGreen() - c1.getGreen()));
+        int b = (int) (c1.getBlue() + t * (c2.getBlue() - c1.getBlue()));
+        return new Color(r, g, b);
+    }
+
+    private static Color getGradientColor(double percentage) {
+        if (percentage <= 0) return Color.decode("#FF0000"); // Red
+        if (percentage <= 25) return interpolate(Color.decode("#FF0000"), Color.decode("#d07910"), percentage / 25.0);
+        if (percentage <= 50) return interpolate(Color.decode("#d07910"), Color.decode("#FFFF00"), (percentage - 25.0) / 25.0);
+        if (percentage <= 75) return interpolate(Color.decode("#FFFF00"), Color.decode("#00CE29"), (percentage - 50.0) / 25.0);
+        return Color.decode("#00CE29"); // Green
+    }
+
     private static void createImage(double certainty, int x, int z, int distance, int netherDistance, boolean isOverworld) {
         try {
             int width = 600;
@@ -179,28 +160,30 @@ public class Main {
             Graphics2D g2d = image.createGraphics();
 
             g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2d.setColor(new Color(0, 0, 0, 0));  
+            g2d.setColor(new Color(0, 0, 0, 0));
             g2d.fillRect(0, 0, width, height);
 
             Font font = new Font("Arial", Font.BOLD, 20);
             g2d.setFont(font);
-            g2d.setColor(Color.WHITE);
 
-            String certaintyText = String.format("%.1f%%", certainty * 100);
+            double percentage = certainty * 100;
+            Color certaintyColor = getGradientColor(percentage);
+
+            String certaintyText = String.format("%.1f%%", percentage);
             String coords = String.format("(%d, %d)", x, z);
             String distanceText = "Dist: " + distance;
 
             FontMetrics metrics = g2d.getFontMetrics(font);
-            int xOffset = width - 10;  
+            int xOffset = width - 10;
 
+            g2d.setColor(certaintyColor);
             g2d.drawString(certaintyText, xOffset - metrics.stringWidth(certaintyText), 30);
-            if (isOverworld) {
-                g2d.drawString(coords, xOffset - metrics.stringWidth(coords), 60);
-                g2d.drawString(distanceText, xOffset - metrics.stringWidth(distanceText), 90);
-            } else {
-                g2d.drawString(coords, xOffset - metrics.stringWidth(coords), 60);
-                g2d.drawString(distanceText, xOffset - metrics.stringWidth(distanceText), 90);
-            }
+
+            g2d.setColor(Color.WHITE);
+            g2d.drawString(coords, xOffset - metrics.stringWidth(coords), 60);
+
+            g2d.setColor(Color.WHITE);
+            g2d.drawString(distanceText, xOffset - metrics.stringWidth(distanceText), 90);
 
             File file = new File("image.png");
             ImageIO.write(image, "PNG", file);
@@ -219,7 +202,7 @@ public class Main {
             BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
             Graphics2D g2d = image.createGraphics();
 
-            g2d.setColor(new Color(0, 0, 0, 0));  
+            g2d.setColor(new Color(0, 0, 0, 0));
             g2d.fillRect(0, 0, width, height);
 
             File file = new File("image.png");
@@ -232,8 +215,7 @@ public class Main {
         }
     }
 
-    // Method to create an empty image before exiting
     private static void createEmptyImageBeforeExit() {
-        createImageWithoutText();  // Generate an empty image before closing
+        createImageWithoutText();
     }
 }
