@@ -1,4 +1,6 @@
 # Ninjabrainbot OBS Overlay
+[![GitHub release](https://img.shields.io/github/v/release/qMaxXen/CalcOverlay?logo=github)](https://github.com/qMaxXen/CalcOverlay/releases)
+[![GitHub downloads](https://img.shields.io/github/downloads/qMaxXen/CalcOverlay/total?logo=github)](https://github.com/qMaxXen/CalcOverlay/releases)
 
 A Java program that generates an image displaying the certainty percentage of hitting the stronghold, the coordinates of the Nether portal, and the distance to the stronghold portal.
 
