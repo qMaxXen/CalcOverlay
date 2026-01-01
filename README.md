@@ -14,7 +14,7 @@ A Java program that generates an image displaying the certainty percentage of hi
 > [!TIP]
 > Getting this error after running **CalcOverlay-1.0.1.jar**?  
 > <img src="https://github.com/user-attachments/assets/4580095e-e818-4ca2-b876-b98962f2a992" width="200" /><br>
-> Download and run [Jarfix](https://johann.loefflmann.net/en/software/jarfix/index.html).
+> Download and run [Jarfix](https://github.com/qMaxXen/Jarfix?tab=readme-ov-file#jarfix).
 
 ## Screenshot
 <img src="https://github.com/user-attachments/assets/11981d6b-8961-45aa-ac6f-5066e0d6ec53" width="600" />
