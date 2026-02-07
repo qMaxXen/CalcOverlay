@@ -4,6 +4,12 @@
 
 A Java program that generates an image displaying the certainty percentage of hitting the stronghold, the coordinates of the Nether portal, and the distance to the stronghold portal.
 
+> [!NOTE]
+> This is not a **Jingle plugin**, but rather a standalone program.
+>
+> This is intended for **Linux/Mac users** where Jingle isn't supported. 
+> If you're on Windows, I highly recommend you use the [Jingle CalcOverlay plugin](https://github.com/marin774/Jingle-CalcOverlay-Plugin).
+
 ## How to use
 
 1. Enable API in Ninjabrainbot. ![image](https://github.com/user-attachments/assets/fe684b8b-1601-4dc9-86be-97160a964954)
